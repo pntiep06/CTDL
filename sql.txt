@@ -1,0 +1,81 @@
+SELECT MaDatPhong, MaDV, SoLuong
+FROM CHI_TIET_SU_DUNG_DV
+WHERE SoLuong > 3 AND SoLuong < 10;
+
+UPDATE PHONG
+SET GiaPhong = GiaPhong + 10000
+WHERE SoKhachToiDa > 10;
+
+DELETE FROM DAT_PHONG
+WHERE TrangThaiDat = 'Da huy';
+
+SELECT TenKH
+FROM KHACH_HANG
+WHERE (TenKH LIKE 'H%' OR TenKH LIKE 'N%' OR TenKH LIKE 'M%')
+  AND LEN(TenKH) <= 20;
+
+SELECT DISTINCT TenKH
+FROM KHACH_HANG;
+SELECT TenKH
+FROM KHACH_HANG
+GROUP BY TenKH;
+
+
+SELECT MaDV, TenDV, DonViTinh, DonGia
+FROM DICH_VU_DI_KEM
+WHERE (DonViTinh = 'lon' AND DonGia > 10000)
+   OR (DonViTinh = 'Cai' AND DonGia < 5000);
+
+
+SELECT 
+    dp.MaDatPhong, dp.MaPhong, p.LoaiPhong, p.SoKhachToiDa, p.GiaPhong,
+    dp.MaKH, kh.TenKH, kh.SoDT,
+    dp.NgayDat, dp.GioBatDau, dp.GioKetThuc,
+    ct.MaDichVu, ct.SoLuong, dv.DonGia
+FROM DAT_PHONG dp
+INNER JOIN PHONG p ON dp.MaPhong = p.MaPhong
+INNER JOIN KHACH_HANG kh ON dp.MaKH = kh.MaKH
+LEFT JOIN CHI_TIET_SU_DUNG_DV ct ON dp.MaDatPhong = ct.MaDatPhong
+LEFT JOIN DICH_VU_DI_KEM dv ON ct.MaDV = dv.MaDV
+WHERE YEAR(dp.NgayDat) IN (2016, 2017)
+  AND p.GiaPhong > 50000;
+
+
+SELECT 
+    dp.MaDatPhong,
+    dp.MaPhong,
+    p.LoaiPhong,
+    p.GiaPhong,
+    kh.TenKH,
+    dp.NgayDat,
+    p.GiaPhong * (dp.GioKetThuc - dp.GioBatDau) AS TongTienHat,
+    ISNULL(SUM(ct.SoLuong * dv.DonGia), 0) AS TongTienSuDungDichVu,
+    p.GiaPhong * (dp.GioKetThuc - dp.GioBatDau) + ISNULL(SUM(ct.SoLuong * dv.DonGia), 0) AS TongTienThanhToan
+FROM DAT_PHONG dp
+INNER JOIN PHONG p ON dp.MaPhong = p.MaPhong
+INNER JOIN KHACH_HANG kh ON dp.MaKH = kh.MaKH
+LEFT JOIN CHI_TIET_SU_DUNG_DV ct ON dp.MaDatPhong = ct.MaDatPhong
+LEFT JOIN DICH_VU_DI_KEM dv ON ct.MaDV = dv.MaDV
+GROUP BY 
+    dp.MaDatPhong, dp.MaPhong, p.LoaiPhong, p.GiaPhong,
+    kh.TenKH, dp.NgayDat, dp.GioBatDau, dp.GioKetThuc;
+
+
+SELECT DISTINCT kh.MaKH, kh.TenKH, kh.DiaChi, kh.SoDT
+FROM KHACH_HANG kh
+INNER JOIN DAT_PHONG dp ON kh.MaKH = dp.MaKH
+WHERE kh.DiaChi LIKE '%Hoa xuan%';
+
+
+SELECT 
+    p.MaPhong,
+    p.LoaiPhong,
+    p.SoKhachToiDa,
+    p.GiaPhong,
+    COUNT(dp.MaDatPhong) AS SoLanDat
+FROM PHONG p
+INNER JOIN DAT_PHONG dp ON p.MaPhong = dp.MaPhong
+WHERE dp.TrangThaiDat = 'Da dat'
+GROUP BY p.MaPhong, p.LoaiPhong, p.SoKhachToiDa, p.GiaPhong
+HAVING COUNT(dp.MaDatPhong) > 2;
+
